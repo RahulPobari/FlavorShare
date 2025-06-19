@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500&family=Poppins:wght@300&family=Roboto:wght@500;700&family=Source+Code+Pro:ital@1&display=swap');
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+
+}
+
+body{
+  background-color: rgb(212, 216, 216);
+}
+
+/* Container for the Signup form */
+.SignupContainer {
+  border: 1px solid rgb(0, 0, 0);
+  width: 90%;
+  max-width: 500px; /* Limit the maximum width for better readability */
+  margin: auto;
+  padding: 2rem;
+  border-radius: 0.5rem; /* Rounded corners for a softer look */
+  background-color: #f8f8f8; /* Light background color */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+  margin-top: 10rem !important;
+}
+
+/* Signup form styles */
+.SignupContainer form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Increased gap for better spacing */
+}
+
+.SignupContainer form input {
+  padding: 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc; /* Lighter border color */
+  outline: none;
+  border-radius: 0.3rem;
+  width: 100%;
+  transition: border-color 0.3s ease-in-out; /* Smooth border color transition */
+}
+
+.SignupContainer form input:focus {
+  border-color: #007bff; /* Highlight border on focus */
+}
+
+.SignupContainer form button {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  background-color: #007bff; /* Blue button color */
+  color: white; /* White text color */
+  border: none;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out; /* Smooth background color transition */
+}
+
+.SignupContainer form button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+
+.fill-fields-error{
+  color: red;
+  padding: 0.2rem;
+  transition: all 0.4s;
+  
+}
+
+/* Navbar container */
+nav {
+  background-color: #333;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Navigation items */
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline-block;
+  margin-right: 1rem;
+  text-align: center;
+}
+
+/* Navigation links */
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.2rem;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+nav .nav-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+nav ul li a.active {
+  background-color: white;
+  color: #333;
+  border-radius: 0.2rem;
+}
+
+
+
+nav .nav-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem;
+
+}
+
+.hamburger-icon{
+  display: none;
+  transition: all 0.4s ease-in-out;
+}
+
+/* ... Previous CSS Code ... */
+
+/* Hamburger icon styles */
+.hamburger-icon {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.4s ease-in-out;
+}
+
+/* Media query for mobile and tablet devices */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    height: auto;
+    padding: 0;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .hamburger-icon {
+    display: block;
+  }
+
+  .nav-right {
+    background-color: #333;
+    width: 100%;
+    transition: all 0.5s ease-in-out;
+    position: absolute;
+    top: 3.5rem;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .nav-right.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  nav ul li {
+    display: block;
+    margin: 0.5rem;
+    text-align: center;
+  }
+}
