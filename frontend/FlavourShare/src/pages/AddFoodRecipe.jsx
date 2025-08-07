@@ -3,32 +3,52 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function AddFoodRecipe() {
-  const [recipeData, setRecipeData] = useState({})
+  const [recipeData, setRecipeData] = useState({
+    title: '',
+    time: '',
+    ingredients: '',
+    instructions: '',
+    file: null,
+  })
   const navigate = useNavigate()
 
   const onHandleChange = (e) => {
-    let val =
-      e.target.name === 'ingredients'
-        ? e.target.value.split(',').map(i => i.trim()).filter(Boolean)
-        : e.target.name === 'file'
-        ? e.target.files[0]
-        : e.target.value
-    setRecipeData((pre) => ({ ...pre, [e.target.name]: val }))
+    const { name, value, files } = e.target
+    setRecipeData((prev) => ({
+      ...prev,
+      [name]: name === 'file' ? files[0] : value,
+    }))
   }
 
   const onHandleSubmit = async (e) => {
     e.preventDefault()
+
+    const formData = new FormData()
+    formData.append('title', recipeData.title)
+    formData.append('time', recipeData.time)
+    formData.append('instructions', recipeData.instructions)
+
+    // Ingredients: split and trim
+    const ingredientsArray = recipeData.ingredients
+      .split(',')
+      .map((i) => i.trim())
+      .filter(Boolean)
+    ingredientsArray.forEach((item, index) =>
+      formData.append(`ingredients[]`, item)
+    )
+
+    formData.append('coverImage', recipeData.file)
+
     try {
-      await axios.post('https://flavorshare-zvh9.onrender.com/recipe', recipeData, {
+      await axios.post('https://flavorshare-zvh9.onrender.com/recipe', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          authorization: 'bearer ' + localStorage.getItem('token'),
+          authorization: 'Bearer ' + localStorage.getItem('token'),
         },
       })
       navigate('/')
     } catch (err) {
-      console.error('Failed to add recipe:', err)
-      // Optionally handle/display error here
+      console.error('Failed to add recipe:', err.response?.data || err.message)
     }
   }
 
@@ -89,6 +109,8 @@ export default function AddFoodRecipe() {
           </button>
         </form>
       </div>
+
+      {/* Keep your style code as is */}
 
       <style jsx="true">{`
         /* Reset and base fonts */
