@@ -6,9 +6,10 @@ const {
   addRecipe,
   editRecipe,
   deleteRecipe,
-  upload
 } = require("../controller/recipe");
 const verifyToken = require("../middleware/auth");
+
+const upload = require("../middleware/multer");
 
 // ✅ Get all recipes
 router.get("/", getRecipes);
