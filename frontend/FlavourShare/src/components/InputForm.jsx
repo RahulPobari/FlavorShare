@@ -14,7 +14,7 @@ export default function InputForm({ setIsOpen }) {
     let endpoint = isSignUp ? 'signUp' : 'login'
 
     try {
-      const res = await axios.post(`http://localhost:5000/${endpoint}`, { email, password })
+      const res = await axios.post(`https://flavorshare-zvh9.onrender.com/${endpoint}`, { email, password })
       localStorage.setItem('token', res.data.token)
       localStorage.setItem('user', JSON.stringify(res.data.user))
       setIsOpen(false)

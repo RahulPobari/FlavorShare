@@ -17,7 +17,7 @@ export default function RecipeDetails() {
 
         <div className="image-wrapper">
           <img
-            src={`http://localhost:5000/images/${recipe.coverImage}`}
+            src={`https://flavorshare-zvh9.onrender.com/images/${recipe.coverImage}`}
             alt={recipe.title}
             loading="lazy"
             width="100%"
