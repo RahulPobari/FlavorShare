@@ -1,5 +1,5 @@
 const Recipes = require("../models/recipe");
-const upload = require("../config/multer"); // uses Cloudinary
+const upload = require("../middleware/multer"); // uses Cloudinary
 const cloudinary = require("../config/cloudinary");
 
 // Get all recipes
