@@ -1,37 +1,47 @@
 const Recipes = require("../models/recipe");
-const upload = require("../middleware/multer"); // uses Cloudinary
 const cloudinary = require("../config/cloudinary");
 
 // Get all recipes
 const getRecipes = async (req, res) => {
-  const recipes = await Recipes.find();
-  return res.json(recipes);
+  try {
+    const recipes = await Recipes.find().sort({ createdAt: -1 });
+    return res.status(200).json(recipes);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch recipes", error });
+  }
 };
 
 // Get single recipe
 const getRecipe = async (req, res) => {
-  const recipe = await Recipes.findById(req.params.id);
-  res.json(recipe);
+  try {
+    const recipe = await Recipes.findById(req.params.id);
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+    return res.status(200).json(recipe);
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching recipe", error });
+  }
 };
 
-// Add new recipe with Cloudinary image upload
+
 const addRecipe = async (req, res) => {
-  const { title, ingredients, instructions, time } = req.body;
+  try {
+    const { title, ingredients, instructions, time } = req.body;
 
-  if (!title || !ingredients || !instructions) {
-    return res.status(400).json({ message: "Required fields can't be empty" });
+    const recipe = new Recipe({
+      title,
+      ingredients: Array.isArray(ingredients) ? ingredients : [ingredients],
+      instructions,
+      time,
+      createdBy: req.userId,
+      coverImage: req.file ? req.file.path : null, // ✅ store image URL
+    });
+
+    await recipe.save();
+    res.status(201).json({ success: true, data: recipe });
+  } catch (error) {
+    console.error("Error in addRecipe:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
-
-  const newRecipe = await Recipes.create({
-    title,
-    ingredients,
-    instructions,
-    time,
-    coverImage: req.file?.path, // Cloudinary URL
-    createdBy: req.user.id,
-  });
-
-  return res.json(newRecipe);
 };
 
 // Edit existing recipe
@@ -39,29 +49,33 @@ const editRecipe = async (req, res) => {
   const { title, ingredients, instructions, time } = req.body;
 
   try {
-    let recipe = await Recipes.findById(req.params.id);
+    const recipe = await Recipes.findById(req.params.id);
     if (!recipe) {
       return res.status(404).json({ message: "Recipe not found" });
     }
 
     let coverImage = recipe.coverImage;
+    let imagePublicId = recipe.imagePublicId;
 
-    if (req.file?.path) {
-      // Optional: Delete old image from Cloudinary if needed
-      // const publicId = coverImage.split('/').pop().split('.')[0];
-      // await cloudinary.uploader.destroy(`recipe_images/${publicId}`);
+    if (req.file?.path && req.file?.filename) {
+      // Delete old image from Cloudinary if exists
+      if (recipe.imagePublicId) {
+        await cloudinary.uploader.destroy(recipe.imagePublicId);
+      }
+
       coverImage = req.file.path;
+      imagePublicId = req.file.filename;
     }
 
     const updated = await Recipes.findByIdAndUpdate(
       req.params.id,
-      { title, ingredients, instructions, time, coverImage },
+      { title, ingredients, instructions, time, coverImage, imagePublicId },
       { new: true }
     );
 
-    return res.json(updated);
-  } catch (err) {
-    return res.status(500).json({ message: "Error updating recipe", error: err });
+    return res.status(200).json(updated);
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating recipe", error });
   }
 };
 
@@ -71,14 +85,15 @@ const deleteRecipe = async (req, res) => {
     const recipe = await Recipes.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    // Optional: Delete image from Cloudinary if needed
-    // const publicId = recipe.coverImage.split('/').pop().split('.')[0];
-    // await cloudinary.uploader.destroy(`recipe_images/${publicId}`);
+    // Delete image from Cloudinary if available
+    if (recipe.imagePublicId) {
+      await cloudinary.uploader.destroy(recipe.imagePublicId);
+    }
 
     await Recipes.deleteOne({ _id: req.params.id });
-    res.json({ status: "ok" });
-  } catch (err) {
-    return res.status(400).json({ message: "Error deleting recipe", error: err });
+    return res.json({ status: "ok", message: "Recipe deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Error deleting recipe", error });
   }
 };
 
@@ -88,5 +103,4 @@ module.exports = {
   addRecipe,
   editRecipe,
   deleteRecipe,
-  upload
 };
