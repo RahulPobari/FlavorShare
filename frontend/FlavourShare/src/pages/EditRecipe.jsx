@@ -26,22 +26,39 @@ export default function EditRecipe() {
   const onHandleChange = (e) => {
     let val =
       e.target.name === "ingredients" ? e.target.value.split(",") :
-      e.target.name === "file" ? e.target.files[0] :
+      e.target.name === "coverImage" ? e.target.files[0] :
       e.target.value
 
     setRecipeData(pre => ({ ...pre, [e.target.name]: val }))
   }
 
-  const onHandleSubmit = async (e) => {
-    e.preventDefault()
-    await axios.put(`http://localhost:5000/recipe/${id}`, recipeData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'authorization': 'bearer ' + localStorage.getItem("token")
-      }
-    })
-    navigate("/myRecipe")
+ const onHandleSubmit = async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData();
+  formData.append("title", recipeData.title);
+  formData.append("time", recipeData.time);
+  formData.append("ingredients", Array.isArray(recipeData.ingredients) ? recipeData.ingredients.join(",") : recipeData.ingredients);
+  formData.append("instructions", recipeData.instructions);
+
+  if (recipeData.coverImage instanceof File) {
+    formData.append("coverImage", recipeData.coverImage);
   }
+
+  try {
+    await axios.put(`https://flavorshare-zvh9.onrender.com/recipe/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+
+    navigate("/myRecipe");
+  } catch (error) {
+    console.error("Error updating recipe:", error.response?.data || error.message);
+  }
+};
+
 
   return (
     <>
@@ -71,7 +88,7 @@ export default function EditRecipe() {
 
           <div className='form-control'>
             <label>Recipe Image</label>
-            <input type="file" name="file" onChange={onHandleChange} />
+            <input type="file" name="coverImage" onChange={onHandleChange} />
           </div>
 
           <button type="submit">Update Recipe</button>

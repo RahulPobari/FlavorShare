@@ -8,7 +8,7 @@ export default function AddFoodRecipe() {
     time: '',
     ingredients: '',
     instructions: '',
-    file: null,
+    coverImage: null,
   })
   const navigate = useNavigate()
 
@@ -16,7 +16,7 @@ export default function AddFoodRecipe() {
     const { name, value, files } = e.target
     setRecipeData((prev) => ({
       ...prev,
-      [name]: name === 'file' ? files[0] : value,
+      [name]: name === 'coverImage' ? files[0] : value,
     }))
   }
 
