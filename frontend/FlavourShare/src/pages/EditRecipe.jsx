@@ -8,13 +8,13 @@ export default function EditRecipe() {
     ingredients: "",
     instructions: "",
     time: "",
-    coverImage: null, // can be File or string (URL)
+    coverImage: null, // can be File (new upload) or string (existing URL)
   });
 
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Fetch existing recipe
+  // Fetch existing recipe data
   useEffect(() => {
     const getData = async () => {
       try {
@@ -22,11 +22,11 @@ export default function EditRecipe() {
           `https://flavorshare-zvh9.onrender.com/recipe/${id}`
         );
         setRecipeData({
-          title: res.title,
+          title: res.title || "",
           ingredients: Array.isArray(res.ingredients)
-            ? res.ingredients.join(",")
+            ? res.ingredients.join(", ")
             : "",
-          instructions: res.instructions,
+          instructions: res.instructions || "",
           time: res.time || "",
           coverImage: res.coverImage || null,
         });
@@ -37,32 +37,46 @@ export default function EditRecipe() {
     getData();
   }, [id]);
 
-  // Handle form changes
+  // Handle form input changes
   const onHandleChange = (e) => {
     let value = e.target.value;
     if (e.target.name === "coverImage") {
-      value = e.target.files[0]; // File object
+      value = e.target.files[0] || null; // File object or null if cleared
     }
     setRecipeData((prev) => ({ ...prev, [e.target.name]: value }));
   };
 
-  // Submit form
+  // Submit updated recipe
   const onHandleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", recipeData.title);
-    formData.append("time", recipeData.time);
-    formData.append("instructions", recipeData.instructions);
+    // Basic validation (optional, you can extend)
+    if (!recipeData.title.trim()) {
+      alert("Title is required");
+      return;
+    }
+    if (!recipeData.ingredients.trim()) {
+      alert("Please add at least one ingredient");
+      return;
+    }
+    if (!recipeData.instructions.trim()) {
+      alert("Instructions are required");
+      return;
+    }
 
-    // Split ingredients into an array and append each
+    const formData = new FormData();
+    formData.append("title", recipeData.title.trim());
+    formData.append("time", recipeData.time.trim());
+    formData.append("instructions", recipeData.instructions.trim());
+
+    // Append ingredients as multiple fields
     recipeData.ingredients
       .split(",")
       .map((i) => i.trim())
-      .filter((i) => i)
+      .filter((i) => i.length > 0)
       .forEach((ingredient) => formData.append("ingredients", ingredient));
 
-    // Only append image if a new file is selected
+    // Append image file only if a new file is selected
     if (recipeData.coverImage instanceof File) {
       formData.append("coverImage", recipeData.coverImage);
     }
@@ -79,34 +93,41 @@ export default function EditRecipe() {
         }
       );
 
-      navigate("/myRecipe");
+      navigate("/myRecipe"); // Navigate after successful edit
     } catch (error) {
       console.error(
         "Error updating recipe:",
         error.response?.data || error.message
+      );
+      alert(
+        "Failed to update recipe. " +
+          (error.response?.data?.message || error.message || "Please try again.")
       );
     }
   };
 
   return (
     <div className="container">
-      <form className="form" onSubmit={onHandleSubmit}>
+      <form className="form" onSubmit={onHandleSubmit} encType="multipart/form-data">
         <h2>Edit Recipe</h2>
 
         <div className="form-control">
-          <label>Title</label>
+          <label htmlFor="title">Title</label>
           <input
             type="text"
+            id="title"
             name="title"
             onChange={onHandleChange}
             value={recipeData.title}
+            required
           />
         </div>
 
         <div className="form-control">
-          <label>Time</label>
+          <label htmlFor="time">Time</label>
           <input
             type="text"
+            id="time"
             name="time"
             onChange={onHandleChange}
             value={recipeData.time}
@@ -114,33 +135,44 @@ export default function EditRecipe() {
         </div>
 
         <div className="form-control">
-          <label>Ingredients (comma separated)</label>
+          <label htmlFor="ingredients">Ingredients (comma separated)</label>
           <textarea
+            id="ingredients"
             name="ingredients"
             rows="5"
             onChange={onHandleChange}
             value={recipeData.ingredients}
+            required
           ></textarea>
         </div>
 
         <div className="form-control">
-          <label>Instructions</label>
+          <label htmlFor="instructions">Instructions</label>
           <textarea
+            id="instructions"
             name="instructions"
             rows="5"
             onChange={onHandleChange}
             value={recipeData.instructions}
+            required
           ></textarea>
         </div>
 
         <div className="form-control">
-          <label>Recipe Image</label>
-          <input type="file" name="coverImage" onChange={onHandleChange} />
-          {typeof recipeData.coverImage === "string" && (
+          <label htmlFor="coverImage">Recipe Image</label>
+          <input
+            type="file"
+            name="coverImage"
+            id="coverImage"
+            accept="image/*"
+            onChange={onHandleChange}
+          />
+          {/* Show current image preview if coverImage is string */}
+          {typeof recipeData.coverImage === "string" && recipeData.coverImage && (
             <img
               src={recipeData.coverImage}
-              alt="Current"
-              style={{ marginTop: "10px", maxWidth: "150px" }}
+              alt="Current recipe"
+              style={{ marginTop: "10px", maxWidth: "150px", borderRadius: "8px" }}
             />
           )}
         </div>

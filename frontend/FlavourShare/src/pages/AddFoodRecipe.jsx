@@ -23,12 +23,30 @@ export default function AddFoodRecipe() {
   const onHandleSubmit = async (e) => {
     e.preventDefault()
 
-    const formData = new FormData()
-    formData.append('title', recipeData.title)
-    formData.append('time', recipeData.time)
-    formData.append('instructions', recipeData.instructions)
+    // Validation: You can add more frontend validation if needed
+    if (!recipeData.title.trim()) {
+      alert('Title is required')
+      return
+    }
+    if (!recipeData.ingredients.trim()) {
+      alert('Please add at least one ingredient')
+      return
+    }
+    if (!recipeData.instructions.trim()) {
+      alert('Instructions are required')
+      return
+    }
+    if (!recipeData.coverImage) {
+      alert('Please select a recipe image')
+      return
+    }
 
-    // split ingredients into array
+    const formData = new FormData()
+    formData.append('title', recipeData.title.trim())
+    formData.append('time', recipeData.time.trim())
+    formData.append('instructions', recipeData.instructions.trim())
+
+    // split ingredients into array and append all as same param name "ingredients"
     recipeData.ingredients
       .split(',')
       .map((i) => i.trim())
@@ -37,9 +55,8 @@ export default function AddFoodRecipe() {
         formData.append('ingredients', item)
       })
 
-    if (recipeData.coverImage) {
-      formData.append('coverImage', recipeData.coverImage) // must match multer config
-    }
+    // Append image file with field name matching backend multer single('coverImage')
+    formData.append('coverImage', recipeData.coverImage)
 
     try {
       await axios.post(
@@ -53,7 +70,7 @@ export default function AddFoodRecipe() {
         }
       )
 
-      // Reset form and navigate
+      // Reset form and navigate on success
       setRecipeData({
         title: '',
         time: '',
@@ -64,71 +81,93 @@ export default function AddFoodRecipe() {
       navigate('/')
     } catch (err) {
       console.error('Failed to add recipe:', err.response?.data || err.message)
+      alert(
+        'Failed to add recipe. ' +
+          (err.response?.data?.message || err.message || 'Please try again.')
+      )
     }
   }
 
   return (
     <>
-    <div className="addrecipe-bg">
-      <form className="addrecipe-form" onSubmit={onHandleSubmit} autoComplete="off" noValidate>
-        <h2>Add New Recipe</h2>
+      <div className="addrecipe-bg">
+        <form
+          className="addrecipe-form"
+          onSubmit={onHandleSubmit}
+          autoComplete="off"
+          noValidate
+          encType="multipart/form-data"
+        >
+          <h2>Add New Recipe</h2>
 
-        <div className="addrecipe-control">
-          <label htmlFor="title">Title</label>
-          <input type="text" name="title" id="title" value={recipeData.title} onChange={onHandleChange} required />
-        </div>
+          <div className="addrecipe-control">
+            <label htmlFor="title">Title</label>
+            <input
+              type="text"
+              name="title"
+              id="title"
+              value={recipeData.title}
+              onChange={onHandleChange}
+              required
+            />
+          </div>
 
-        <div className="addrecipe-control">
-          <label htmlFor="time">Time</label>
-          <input type="text" name="time" id="time" value={recipeData.time} onChange={onHandleChange} required />
-        </div>
+          <div className="addrecipe-control">
+            <label htmlFor="time">Time</label>
+            <input
+              type="text"
+              name="time"
+              id="time"
+              value={recipeData.time}
+              onChange={onHandleChange}
+            />
+          </div>
 
-        <div className="addrecipe-control">
-          <label htmlFor="ingredients">Ingredients (comma separated)</label>
-          <textarea
-            name="ingredients"
-            id="ingredients"
-            rows="3"
-            value={recipeData.ingredients}
-            onChange={onHandleChange}
-            placeholder="e.g. rice, onion, tomato, salt"
-            required
-          ></textarea>
-        </div>
+          <div className="addrecipe-control">
+            <label htmlFor="ingredients">Ingredients (comma separated)</label>
+            <textarea
+              name="ingredients"
+              id="ingredients"
+              rows="3"
+              value={recipeData.ingredients}
+              onChange={onHandleChange}
+              placeholder="e.g. rice, onion, tomato, salt"
+              required
+            ></textarea>
+          </div>
 
-        <div className="addrecipe-control">
-          <label htmlFor="instructions">Instructions</label>
-          <textarea
-            name="instructions"
-            id="instructions"
-            rows="4"
-            value={recipeData.instructions}
-            onChange={onHandleChange}
-            placeholder="Write each step..."
-            required
-          ></textarea>
-        </div>
+          <div className="addrecipe-control">
+            <label htmlFor="instructions">Instructions</label>
+            <textarea
+              name="instructions"
+              id="instructions"
+              rows="4"
+              value={recipeData.instructions}
+              onChange={onHandleChange}
+              placeholder="Write each step..."
+              required
+            ></textarea>
+          </div>
 
-        <div className="addrecipe-control">
-          <label htmlFor="coverImage">Recipe Image</label>
-          <input
-            type="file"
-            name="coverImage"
-            id="coverImage"
-            accept="image/*"
-            onChange={onHandleChange}
-            required
-          />
-        </div>
+          <div className="addrecipe-control">
+            <label htmlFor="coverImage">Recipe Image</label>
+            <input
+              type="file"
+              name="coverImage"
+              id="coverImage"
+              accept="image/*"
+              onChange={onHandleChange}
+              required
+            />
+          </div>
 
-        <button type="submit" className="addrecipe-btn">
-          Add Recipe
-        </button>
-      </form>
-    </div>
+          <button type="submit" className="addrecipe-btn">
+            Add Recipe
+          </button>
+        </form>
+      </div>
 
-    <style jsx="true">{`
-        /* Your existing styles remain unchanged */
+      <style jsx="true">{`
         * {
           margin: 0;
           padding: 0;
@@ -258,6 +297,6 @@ export default function AddFoodRecipe() {
           }
         }
       `}</style>
-            </>
+    </>
   )
 }
