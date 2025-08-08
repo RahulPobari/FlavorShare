@@ -8,33 +8,31 @@ import AddFoodRecipe from './pages/AddFoodRecipe'
 import EditRecipe from './pages/EditRecipe'
 import RecipeDetails from './pages/RecipeDetails'
 
+// Central backend base URL
+const BACKEND_URL = 'https://flavorshare-zvh9.onrender.com'
+
 const getAllRecipes = async () => {
-  let allRecipes = []
-  await axios.get('https://flavorshare-zvh9.onrender.com/recipe').then(res => {
-    allRecipes = res.data
-  })
-  return allRecipes
+  const res = await axios.get(`${BACKEND_URL}/recipe`)
+  return res.data
 }
 
 const getMyRecipes = async () => {
-  let user = JSON.parse(localStorage.getItem('user'))
-  let allRecipes = await getAllRecipes()
+  const user = JSON.parse(localStorage.getItem('user')) || {}
+  const allRecipes = await getAllRecipes()
   return allRecipes.filter(item => item.createdBy === user._id)
 }
 
 const getFavRecipes = () => {
-  return JSON.parse(localStorage.getItem('fav'))
+  const favs = JSON.parse(localStorage.getItem('fav'))
+  return favs ?? []
 }
 
 const getRecipe = async ({ params }) => {
-  let recipe
-  await axios.get(`http://localhost:5000/recipe/${params.id}`).then(res => {
-    recipe = res.data
-  })
+  const recipeRes = await axios.get(`${BACKEND_URL}/recipe/${params.id}`)
+  let recipe = recipeRes.data
 
-  await axios.get(`http://localhost:5000/user/${recipe.createdBy}`).then(res => {
-    recipe = { ...recipe, email: res.data.email }
-  })
+  const userRes = await axios.get(`${BACKEND_URL}/user/${recipe.createdBy}`)
+  recipe = { ...recipe, email: userRes.data.email }
 
   return recipe
 }
@@ -58,12 +56,11 @@ export default function App() {
   return (
     <>
       <RouterProvider router={router} />
-
+      {/* Consider moving styles to a CSS or styled-component for cleaner code */}
       <style jsx="true">{`
         * {
           box-sizing: border-box;
         }
-
         html,
         body,
         #root {
@@ -79,10 +76,6 @@ export default function App() {
           -moz-osx-font-smoothing: grayscale;
           overflow-x: hidden;
         }
-
-        /* Make the base content use full width;
-           individual page sections (Home, RecipeItems, forms) can be boxed with max-width if needed. */
-
         /* Modern scrollbar */
         ::-webkit-scrollbar {
           width: 8px;

@@ -1,8 +1,14 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 export default function Modal({ children, onClose }) {
-  // Close modal on Escape key press
+  const dialogRef = useRef(null)
+
+  // Focus the dialog on open for accessibility
   useEffect(() => {
+    if (dialogRef.current) {
+      dialogRef.current.focus()
+    }
+
     const handleEsc = (event) => {
       if (event.key === 'Escape') {
         onClose()
@@ -19,8 +25,27 @@ export default function Modal({ children, onClose }) {
 
   return (
     <>
-      <div className="backdrop" onClick={onClose} aria-label="Close modal backdrop" role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose() }}>
-        <dialog className="modal" open onClick={onDialogClick} aria-modal="true" role="dialog" tabIndex={-1}>
+      <div
+        className="backdrop"
+        onClick={onClose}
+        aria-label="Close modal backdrop"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') onClose()
+        }}
+      >
+        <dialog
+          className="modal"
+          open
+          ref={dialogRef}
+          onClick={onDialogClick}
+          aria-modal="true"
+          role="dialog"
+          tabIndex={0} // Changed from -1 to 0 for focusability
+          // Optionally uncomment and set if you add a modal title with id "modal-title"
+          // aria-labelledby="modal-title"
+        >
           {children}
         </dialog>
       </div>
@@ -59,15 +84,19 @@ export default function Modal({ children, onClose }) {
           overflow-y: auto;
         }
 
-        /* Remove native dialog border & background set above */
+        /* Remove native dialog backdrop */
         dialog::backdrop {
           display: none;
         }
 
         /* Animations */
         @keyframes fadeInBg {
-          from { background-color: rgba(0, 0, 0, 0); }
-          to { background-color: rgba(0, 0, 0, 0.75); }
+          from {
+            background-color: rgba(0, 0, 0, 0);
+          }
+          to {
+            background-color: rgba(0, 0, 0, 0.75);
+          }
         }
         @keyframes fadeInModal {
           from {

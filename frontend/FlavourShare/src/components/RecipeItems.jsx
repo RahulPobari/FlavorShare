@@ -49,18 +49,27 @@ export default function RecipeItems() {
             key={item._id || idx}
             tabIndex={0}
             onDoubleClick={() => navigate(`/recipe/${item._id}`)}
-            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/recipe/${item._id}`) }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') navigate(`/recipe/${item._id}`)
+            }}
             aria-label={`View details of ${item.title}`}
             role="button"
           >
             {/* Image */}
-            <div className="recipe-img-wrap" onClick={() => navigate(`/recipe/${item._id}`)}>
+            <div
+              className="recipe-img-wrap"
+              onClick={() => navigate(`/recipe/${item._id}`)}
+            >
               <img
-                src={`http://localhost:5000/images/${item.coverImage}`}
+                src={item.coverImage || '/default-image.png'} // Use cloudinary URL directly or fallback
                 alt={item.title}
                 className="recipe-img"
                 loading="lazy"
                 draggable={false}
+                onError={(e) => {
+                  e.target.onerror = null
+                  e.target.src = '/default-image.png'
+                }}
               />
             </div>
             {/* Main content */}
@@ -73,10 +82,16 @@ export default function RecipeItems() {
                 </div>
                 {!isMyRecipesPage ? (
                   <button
-                    className={`recipe-fav-btn${favItems.some((res) => res._id === item._id) ? " active" : ""}`}
+                    className={`recipe-fav-btn${
+                      favItems.some((res) => res._id === item._id) ? ' active' : ''
+                    }`}
                     onClick={() => favRecipe(item)}
                     aria-pressed={favItems.some((res) => res._id === item._id)}
-                    aria-label={favItems.some(res => res._id === item._id) ? "Remove from favorites" : "Add to favorites"}
+                    aria-label={
+                      favItems.some((res) => res._id === item._id)
+                        ? 'Remove from favorites'
+                        : 'Add to favorites'
+                    }
                     tabIndex={0}
                     type="button"
                   >
@@ -84,10 +99,19 @@ export default function RecipeItems() {
                   </button>
                 ) : (
                   <div className="recipe-actions">
-                    <Link to={`/editRecipe/${item._id}`} className="icon-btn edit" aria-label={`Edit ${item.title}`}>
+                    <Link
+                      to={`/editRecipe/${item._id}`}
+                      className="icon-btn edit"
+                      aria-label={`Edit ${item.title}`}
+                    >
                       <FaEdit />
                     </Link>
-                    <button className="icon-btn delete" onClick={() => onDelete(item._id)} type="button" aria-label={`Delete ${item.title}`}>
+                    <button
+                      className="icon-btn delete"
+                      onClick={() => onDelete(item._id)}
+                      type="button"
+                      aria-label={`Delete ${item.title}`}
+                    >
                       <MdDelete />
                     </button>
                   </div>
@@ -120,7 +144,8 @@ export default function RecipeItems() {
           outline: none;
           min-height: 340px;
         }
-        .recipe-card:focus, .recipe-card:hover {
+        .recipe-card:focus,
+        .recipe-card:hover {
           transform: translateY(-4px) scale(1.024);
           box-shadow: 0 12px 36px #000a;
         }
@@ -189,7 +214,9 @@ export default function RecipeItems() {
           transition: color 0.2s, background 0.18s;
           outline: none;
         }
-        .recipe-fav-btn.active, .recipe-fav-btn:focus, .recipe-fav-btn:hover {
+        .recipe-fav-btn.active,
+        .recipe-fav-btn:focus,
+        .recipe-fav-btn:hover {
           color: #e74c3c;
           background: #1d2822;
         }
@@ -208,10 +235,22 @@ export default function RecipeItems() {
           border-radius: 8px;
           transition: background 0.19s, color 0.17s;
         }
-        .icon-btn.edit { color: #90caf9; }
-        .icon-btn.edit:hover, .icon-btn.edit:focus { color: #60a5fa; background: #20334b;}
-        .icon-btn.delete { color: #ef5350; }
-        .icon-btn.delete:hover, .icon-btn.delete:focus { color: #ff7961; background: #360e0e;}
+        .icon-btn.edit {
+          color: #90caf9;
+        }
+        .icon-btn.edit:hover,
+        .icon-btn.edit:focus {
+          color: #60a5fa;
+          background: #20334b;
+        }
+        .icon-btn.delete {
+          color: #ef5350;
+        }
+        .icon-btn.delete:hover,
+        .icon-btn.delete:focus {
+          color: #ff7961;
+          background: #360e0e;
+        }
 
         @media (max-width: 640px) {
           .recipe-grid {
@@ -222,13 +261,24 @@ export default function RecipeItems() {
           .recipe-card {
             min-height: 0;
           }
-          .recipe-body { padding: 1rem 0.8rem 0.8rem 0.8rem; }
-          .recipe-title { font-size: 1.07rem; margin-bottom: 0.85rem;}
-          .recipe-meta { font-size: 0.98rem;}
+          .recipe-body {
+            padding: 1rem 0.8rem 0.8rem 0.8rem;
+          }
+          .recipe-title {
+            font-size: 1.07rem;
+            margin-bottom: 0.85rem;
+          }
+          .recipe-meta {
+            font-size: 0.98rem;
+          }
         }
         @media (max-width: 420px) {
-          .recipe-body { padding: 0.8rem 0.5rem 0.7rem 0.5rem; }
-          .recipe-title { font-size: 1rem; }
+          .recipe-body {
+            padding: 0.8rem 0.5rem 0.7rem 0.5rem;
+          }
+          .recipe-title {
+            font-size: 1rem;
+          }
         }
       `}</style>
     </>
