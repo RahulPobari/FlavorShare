@@ -31,8 +31,19 @@ const getRecipe = async ({ params }) => {
   const recipeRes = await axios.get(`${BACKEND_URL}/recipe/${params.id}`)
   let recipe = recipeRes.data
 
-  const userRes = await axios.get(`${BACKEND_URL}/user/${recipe.createdBy}`)
-  recipe = { ...recipe, email: userRes.data.email }
+  if (recipe.createdBy) {
+    try {
+      const userRes = await axios.get(`${BACKEND_URL}/user/${recipe.createdBy}`)
+      recipe = { ...recipe, email: userRes.data.email }
+    } catch (error) {
+      console.error('Failed to fetch user email:', error)
+      // Fail gracefully, leave email undefined or null
+      recipe = { ...recipe, email: null }
+    }
+  } else {
+    // No createdBy, set email to null or handle accordingly
+    recipe = { ...recipe, email: null }
+  }
 
   return recipe
 }
@@ -56,7 +67,7 @@ export default function App() {
   return (
     <>
       <RouterProvider router={router} />
-      {/* Consider moving styles to a CSS or styled-component for cleaner code */}
+      {/* Global styles */}
       <style jsx="true">{`
         * {
           box-sizing: border-box;

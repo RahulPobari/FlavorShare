@@ -10,17 +10,21 @@ export default function RecipeDetails() {
       <div className="outer-container">
         <div className="profile">
           <img src={profileImg} width="50" height="50" alt="Profile" />
-          <h5>{recipe.email}</h5>
+          <h5>{recipe.email || 'Unknown Creator'}</h5>
         </div>
 
         <h3 className="title">{recipe.title}</h3>
 
         <div className="image-wrapper">
           <img
-            src={`https://flavorshare-zvh9.onrender.com/images/${recipe.coverImage}`}
+            src={recipe.coverImage || '/default-image.png'}
             alt={recipe.title}
             loading="lazy"
             width="100%"
+            onError={(e) => {
+              e.target.onerror = null
+              e.target.src = '/default-image.png'
+            }}
           />
         </div>
 
@@ -28,15 +32,15 @@ export default function RecipeDetails() {
           <section className="ingredients">
             <h4>Ingredients</h4>
             <ul>
-              {recipe.ingredients.map((item, idx) => (
+              {recipe.ingredients?.map((item, idx) => (
                 <li key={idx}>{item}</li>
-              ))}
+              )) || <li>No ingredients provided.</li>}
             </ul>
           </section>
 
           <section className="instructions">
             <h4>Instructions</h4>
-            <p>{recipe.instructions}</p>
+            <p>{recipe.instructions || 'No instructions provided.'}</p>
           </section>
         </div>
       </div>
