@@ -4,7 +4,9 @@ const cloudinary = require("../config/cloudinary");
 // Get all recipes
 const getRecipes = async (req, res) => {
   try {
+    console.log("Fetching all recipes...");
     const recipes = await Recipes.find().sort({ createdAt: -1 });
+    console.log(`Fetched ${recipes.length} recipes.`);
     return res.status(200).json(recipes);
   } catch (error) {
     console.error("Error fetching all recipes:", error);
@@ -15,8 +17,13 @@ const getRecipes = async (req, res) => {
 // Get single recipe
 const getRecipe = async (req, res) => {
   try {
+    console.log(`Fetching recipe with id: ${req.params.id}`);
     const recipe = await Recipes.findById(req.params.id);
-    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+    if (!recipe) {
+      console.log("Recipe not found");
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+    console.log("Recipe found:", recipe.title);
     return res.status(200).json(recipe);
   } catch (error) {
     console.error("Error fetching single recipe:", error);
@@ -27,10 +34,11 @@ const getRecipe = async (req, res) => {
 // Add new recipe
 const addRecipe = async (req, res) => {
   try {
-    const { title, ingredients, instructions, time } = req.body;
+    console.log("addRecipe called");
+    console.log("Request body:", req.body);
+    console.log("Uploaded file info:", req.file);
 
-    // Debug: log uploaded file info
-    console.log("addRecipe - uploaded file info:", req.file);
+    const { title, ingredients, instructions, time } = req.body;
 
     // Normalize ingredients to array
     const formattedIngredients = Array.isArray(ingredients)
@@ -43,6 +51,10 @@ const addRecipe = async (req, res) => {
     const coverImage = req.file?.path || null;
     const imagePublicId = req.file?.filename || null;
 
+    console.log("Formatted Ingredients:", formattedIngredients);
+    console.log("Image URL (coverImage):", coverImage);
+    console.log("Image public id:", imagePublicId);
+
     const recipe = new Recipes({
       title: title?.trim(),
       ingredients: formattedIngredients,
@@ -54,6 +66,7 @@ const addRecipe = async (req, res) => {
     });
 
     await recipe.save();
+    console.log("Recipe saved successfully:", recipe._id);
 
     return res.status(201).json({ success: true, data: recipe });
   } catch (error) {
@@ -65,30 +78,35 @@ const addRecipe = async (req, res) => {
 // Edit existing recipe
 const editRecipe = async (req, res) => {
   try {
+    console.log(`editRecipe called for id: ${req.params.id}`);
+    console.log("Request body:", req.body);
+    console.log("Uploaded file info:", req.file);
+
     const { title, ingredients, instructions, time } = req.body;
 
-    // Debug: log uploaded file info if any
-    console.log("editRecipe - uploaded file info:", req.file);
-
     const recipe = await Recipes.findById(req.params.id);
-    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+    if (!recipe) {
+      console.log("Recipe not found for update");
+      return res.status(404).json({ message: "Recipe not found" });
+    }
 
     let coverImage = recipe.coverImage;
     let imagePublicId = recipe.imagePublicId;
 
-    // Replace image if a new one is uploaded
     if (req.file?.path && req.file?.filename) {
-      // Delete old image from Cloudinary if exists
+      console.log("New image uploaded, deleting old image if exists...");
       if (imagePublicId) {
         try {
           await cloudinary.uploader.destroy(imagePublicId);
+          console.log("Old image deleted:", imagePublicId);
         } catch (delError) {
           console.error("Error deleting old image from Cloudinary:", delError);
-          // Continue anyway, do not block update
         }
       }
       coverImage = req.file.path;
       imagePublicId = req.file.filename;
+      console.log("Updated image URL (coverImage):", coverImage);
+      console.log("Updated image public id:", imagePublicId);
     }
 
     // Normalize ingredients to array
@@ -111,6 +129,8 @@ const editRecipe = async (req, res) => {
       { new: true }
     );
 
+    console.log("Recipe updated:", updated._id);
+
     return res.status(200).json(updated);
   } catch (error) {
     console.error("Error in editRecipe:", error);
@@ -121,20 +141,26 @@ const editRecipe = async (req, res) => {
 // Delete recipe
 const deleteRecipe = async (req, res) => {
   try {
-    const recipe = await Recipes.findById(req.params.id);
-    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+    console.log(`deleteRecipe called for id: ${req.params.id}`);
 
-    // Delete image from Cloudinary if exists
+    const recipe = await Recipes.findById(req.params.id);
+    if (!recipe) {
+      console.log("Recipe not found for deletion");
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
     if (recipe.imagePublicId) {
       try {
         await cloudinary.uploader.destroy(recipe.imagePublicId);
+        console.log("Deleted image from Cloudinary:", recipe.imagePublicId);
       } catch (delError) {
         console.error("Error deleting image from Cloudinary:", delError);
-        // Continue anyway
       }
     }
 
     await recipe.deleteOne();
+    console.log("Recipe deleted:", req.params.id);
+
     return res.json({ status: "ok", message: "Recipe deleted successfully" });
   } catch (error) {
     console.error("Error deleting recipe:", error);
