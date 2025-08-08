@@ -1,19 +1,24 @@
-const express=require("express")
-const app=express()
-const dotenv=require("dotenv").config()
-const connectDb=require("./config/connectionDb")
-const cors=require("cors")
+// Load environment variables before anything else
+require("dotenv").config();
 
-const PORT=process.env.PORT || 3000
-connectDb()
+const express = require("express");
+const app = express();
+const connectDb = require("./config/connectionDb");
+const cors = require("cors");
 
-app.use(express.json())
-app.use(cors())
-app.use(express.static("public"))
+const PORT = process.env.PORT || 3000;
 
-app.use("/",require("./routes/user"))
-app.use("/recipe",require("./routes/recipe"))
+// Connect to database
+connectDb();
 
-app.listen(PORT,(err)=>{
-    console.log(`app is listening on port ${PORT}`)
-})
+app.use(express.json());
+app.use(cors());
+app.use(express.static("public"));
+
+// Routes
+app.use("/", require("./routes/user"));
+app.use("/recipe", require("./routes/recipe"));
+
+app.listen(PORT, () => {
+  console.log(`App is listening on port ${PORT}`);
+});

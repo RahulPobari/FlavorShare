@@ -22,18 +22,26 @@ const getRecipe = async (req, res) => {
   }
 };
 
-
+// Add new recipe
 const addRecipe = async (req, res) => {
   try {
     const { title, ingredients, instructions, time } = req.body;
 
-    const recipe = new Recipe({
-      title,
-      ingredients: Array.isArray(ingredients) ? ingredients : [ingredients],
-      instructions,
-      time,
+    // ✅ Always ensure ingredients is an array
+    const formattedIngredients = Array.isArray(ingredients)
+      ? ingredients.filter((i) => i && i.trim() !== "")
+      : typeof ingredients === "string"
+      ? [ingredients.trim()]
+      : [];
+
+    const recipe = new Recipes({
+      title: title?.trim(),
+      ingredients: formattedIngredients,
+      instructions: instructions?.trim(),
+      time: time?.trim(),
       createdBy: req.userId,
-      coverImage: req.file ? req.file.path : null, // ✅ store image URL
+      coverImage: req.file ? req.file.path : null, // ✅ Cloudinary URL
+      imagePublicId: req.file?.filename || null,
     });
 
     await recipe.save();
@@ -57,19 +65,32 @@ const editRecipe = async (req, res) => {
     let coverImage = recipe.coverImage;
     let imagePublicId = recipe.imagePublicId;
 
+    // ✅ Replace image if a new one is uploaded
     if (req.file?.path && req.file?.filename) {
-      // Delete old image from Cloudinary if exists
-      if (recipe.imagePublicId) {
-        await cloudinary.uploader.destroy(recipe.imagePublicId);
+      if (imagePublicId) {
+        await cloudinary.uploader.destroy(imagePublicId);
       }
-
       coverImage = req.file.path;
       imagePublicId = req.file.filename;
     }
 
+    // ✅ Normalize ingredients
+    const formattedIngredients = Array.isArray(ingredients)
+      ? ingredients.filter((i) => i && i.trim() !== "")
+      : typeof ingredients === "string"
+      ? [ingredients.trim()]
+      : [];
+
     const updated = await Recipes.findByIdAndUpdate(
       req.params.id,
-      { title, ingredients, instructions, time, coverImage, imagePublicId },
+      {
+        title: title?.trim(),
+        ingredients: formattedIngredients,
+        instructions: instructions?.trim(),
+        time: time?.trim(),
+        coverImage,
+        imagePublicId,
+      },
       { new: true }
     );
 
@@ -85,12 +106,11 @@ const deleteRecipe = async (req, res) => {
     const recipe = await Recipes.findById(req.params.id);
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
-    // Delete image from Cloudinary if available
     if (recipe.imagePublicId) {
       await cloudinary.uploader.destroy(recipe.imagePublicId);
     }
 
-    await Recipes.deleteOne({ _id: req.params.id });
+    await recipe.deleteOne();
     return res.json({ status: "ok", message: "Recipe deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Error deleting recipe", error });

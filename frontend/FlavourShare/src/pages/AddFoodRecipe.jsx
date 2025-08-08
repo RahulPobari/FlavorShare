@@ -28,23 +28,38 @@ export default function AddFoodRecipe() {
     formData.append('time', recipeData.time)
     formData.append('instructions', recipeData.instructions)
 
-    // Ingredients: split and trim
-    const ingredientsArray = recipeData.ingredients
+    // split ingredients into array
+    recipeData.ingredients
       .split(',')
       .map((i) => i.trim())
       .filter(Boolean)
-    ingredientsArray.forEach((item, index) =>
-      formData.append(`ingredients[]`, item)
-    )
+      .forEach((item) => {
+        formData.append('ingredients', item)
+      })
 
-    formData.append('coverImage', recipeData.file)
+    if (recipeData.coverImage) {
+      formData.append('coverImage', recipeData.coverImage) // must match multer config
+    }
 
     try {
-      await axios.post('https://flavorshare-zvh9.onrender.com/recipe', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          authorization: 'Bearer ' + localStorage.getItem('token'),
-        },
+      await axios.post(
+        'https://flavorshare-zvh9.onrender.com/recipe',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: 'Bearer ' + localStorage.getItem('token'),
+          },
+        }
+      )
+
+      // Reset form and navigate
+      setRecipeData({
+        title: '',
+        time: '',
+        ingredients: '',
+        instructions: '',
+        coverImage: null,
       })
       navigate('/')
     } catch (err) {
@@ -54,73 +69,72 @@ export default function AddFoodRecipe() {
 
   return (
     <>
-      <div className="addrecipe-bg">
-        <form className="addrecipe-form" onSubmit={onHandleSubmit} autoComplete="off" noValidate>
-          <h2>Add New Recipe</h2>
+    <div className="addrecipe-bg">
+      <form className="addrecipe-form" onSubmit={onHandleSubmit} autoComplete="off" noValidate>
+        <h2>Add New Recipe</h2>
 
-          <div className="addrecipe-control">
-            <label htmlFor="title">Title</label>
-            <input type="text" name="title" id="title" onChange={onHandleChange} required />
-          </div>
+        <div className="addrecipe-control">
+          <label htmlFor="title">Title</label>
+          <input type="text" name="title" id="title" value={recipeData.title} onChange={onHandleChange} required />
+        </div>
 
-          <div className="addrecipe-control">
-            <label htmlFor="time">Time</label>
-            <input type="text" name="time" id="time" onChange={onHandleChange} required />
-          </div>
+        <div className="addrecipe-control">
+          <label htmlFor="time">Time</label>
+          <input type="text" name="time" id="time" value={recipeData.time} onChange={onHandleChange} required />
+        </div>
 
-          <div className="addrecipe-control">
-            <label htmlFor="ingredients">Ingredients (comma separated)</label>
-            <textarea
-              name="ingredients"
-              id="ingredients"
-              rows="3"
-              onChange={onHandleChange}
-              placeholder="e.g. rice, onion, tomato, salt"
-              required
-            ></textarea>
-          </div>
+        <div className="addrecipe-control">
+          <label htmlFor="ingredients">Ingredients (comma separated)</label>
+          <textarea
+            name="ingredients"
+            id="ingredients"
+            rows="3"
+            value={recipeData.ingredients}
+            onChange={onHandleChange}
+            placeholder="e.g. rice, onion, tomato, salt"
+            required
+          ></textarea>
+        </div>
 
-          <div className="addrecipe-control">
-            <label htmlFor="instructions">Instructions</label>
-            <textarea
-              name="instructions"
-              id="instructions"
-              rows="4"
-              onChange={onHandleChange}
-              placeholder="Write each step..."
-              required
-            ></textarea>
-          </div>
+        <div className="addrecipe-control">
+          <label htmlFor="instructions">Instructions</label>
+          <textarea
+            name="instructions"
+            id="instructions"
+            rows="4"
+            value={recipeData.instructions}
+            onChange={onHandleChange}
+            placeholder="Write each step..."
+            required
+          ></textarea>
+        </div>
 
-          <div className="addrecipe-control">
-            <label htmlFor="file">Recipe Image</label>
-            <input
-              type="file"
-              name="file"
-              id="file"
-              accept="image/*"
-              onChange={onHandleChange}
-              required
-            />
-          </div>
+        <div className="addrecipe-control">
+          <label htmlFor="coverImage">Recipe Image</label>
+          <input
+            type="file"
+            name="coverImage"
+            id="coverImage"
+            accept="image/*"
+            onChange={onHandleChange}
+            required
+          />
+        </div>
 
-          <button type="submit" className="addrecipe-btn">
-            Add Recipe
-          </button>
-        </form>
-      </div>
+        <button type="submit" className="addrecipe-btn">
+          Add Recipe
+        </button>
+      </form>
+    </div>
 
-      {/* Keep your style code as is */}
-
-      <style jsx="true">{`
-        /* Reset and base fonts */
+    <style jsx="true">{`
+        /* Your existing styles remain unchanged */
         * {
           margin: 0;
           padding: 0;
           box-sizing: border-box;
           font-family: 'Poppins', Arial, Helvetica, sans-serif;
         }
-        /* Background and centering wrapper */
         .addrecipe-bg {
           min-height: 100vh;
           background: #15161a;
@@ -129,7 +143,6 @@ export default function AddFoodRecipe() {
           align-items: center;
           padding: 2rem 1rem;
         }
-        /* Form container */
         .addrecipe-form {
           background: #20222b;
           width: 100%;
@@ -142,7 +155,6 @@ export default function AddFoodRecipe() {
           gap: 1.2rem;
           color: #f5f5fa;
         }
-        /* Heading */
         .addrecipe-form h2 {
           margin-bottom: 1.2rem;
           color: #f5f5fa;
@@ -151,13 +163,11 @@ export default function AddFoodRecipe() {
           font-size: 2rem;
           letter-spacing: 1px;
         }
-        /* Form group */
         .addrecipe-control {
           display: flex;
           flex-direction: column;
           gap: 0.45rem;
         }
-        /* Label */
         .addrecipe-control label {
           color: #b6bbce;
           font-weight: 600;
@@ -165,7 +175,6 @@ export default function AddFoodRecipe() {
           margin-bottom: 3px;
           user-select: none;
         }
-        /* Inputs and textareas */
         .addrecipe-control input[type='text'],
         .addrecipe-control textarea {
           background: #23242c;
@@ -183,13 +192,11 @@ export default function AddFoodRecipe() {
           border-color: #4caf50;
           outline-color: #4caf50;
         }
-        /* Textarea resize */
         .addrecipe-control textarea {
           resize: vertical;
           min-height: 70px;
           max-height: 240px;
         }
-        /* File input */
         .addrecipe-control input[type='file'] {
           background: #22232b;
           color: #bacac7;
@@ -205,7 +212,6 @@ export default function AddFoodRecipe() {
           outline-color: #4caf50;
           outline-offset: 2px;
         }
-        /* Submit button */
         .addrecipe-btn {
           margin-top: 0.8rem;
           background: #4caf50;
@@ -228,8 +234,6 @@ export default function AddFoodRecipe() {
           box-shadow: 0 6px 14px #1b3b11;
           outline: none;
         }
-
-        /* Responsive adjustment */
         @media (max-width: 520px) {
           .addrecipe-form {
             max-width: 97vw;
@@ -254,6 +258,6 @@ export default function AddFoodRecipe() {
           }
         }
       `}</style>
-    </>
+            </>
   )
 }
