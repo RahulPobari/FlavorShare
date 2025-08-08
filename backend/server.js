@@ -11,14 +11,25 @@ const PORT = process.env.PORT || 3000;
 // Connect to database
 connectDb();
 
+// Middleware
 app.use(express.json());
-app.use(cors());
+
+// CORS configuration to allow only your frontend
+app.use(cors({
+  origin: ["https://flavourshare-ux1a.onrender.com"], // Your frontend URL on Render
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+// Static files
 app.use(express.static("public"));
 
 // Routes
 app.use("/", require("./routes/user"));
 app.use("/recipe", require("./routes/recipe"));
 
+// Start server
 app.listen(PORT, () => {
   console.log(`App is listening on port ${PORT}`);
 });
